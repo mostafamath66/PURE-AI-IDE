@@ -46,11 +46,22 @@ void ExtractResource(int resId, std::wstring outPath) {
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     static HWND hChat, hRepo, hPreview;
     switch (msg) {
-        case WM_CREATE:
-            hRepo = CreateWindowW(L"ListBox", L"", WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 200, 500, hwnd, (HMENU)ID_REPO, NULL, NULL);
-            hChat = CreateWindowW(L"Edit", L"PURE-AI: اطلب تطوير ميزتك هنا...", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE, 205, 0, 400, 450, hwnd, (HMENU)ID_AI_CHAT, NULL, NULL);
-            hPreview = CreateWindowW(L"Static", L"Preview Area", WS_CHILD | WS_VISIBLE | WS_BORDER | SS_CENTER, 610, 0, 300, 500, hwnd, (HMENU)ID_PREVIEW, NULL, NULL);
-            CreateWindowW(L"Button", L"استخراج رابط ويب", WS_CHILD | WS_VISIBLE, 205, 460, 400, 30, hwnd, (HMENU)ID_BTN_LINK, NULL, NULL);
+       case WM_CREATE:
+            // 1. عنوان المربع الأيسر (المستودع)
+            CreateWindowW(L"Static", L"📦 مستودع المشروع", WS_CHILD | WS_VISIBLE | SS_CENTER, 0, 0, 200, 20, hwnd, NULL, NULL, NULL);
+            hRepo = CreateWindowW(L"ListBox", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL, 0, 20, 200, 480, hwnd, (HMENU)ID_REPO, NULL, NULL);
+
+            // 2. عنوان المربع الأوسط (شات الذكاء الاصطناعي)
+            CreateWindowW(L"Static", L"🤖 PURE-AI Chat", WS_CHILD | WS_VISIBLE | SS_CENTER, 205, 0, 400, 20, hwnd, NULL, NULL, NULL);
+            hChat = CreateWindowW(L"Edit", L"اطلب من الذكاء الاصطناعي توليد أو تصحيح الأكواد...", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL, 205, 20, 400, 430, hwnd, (HMENU)ID_AI_CHAT, NULL, NULL);
+
+            // 3. عنوان المربع الأيمن (المعاينة)
+            CreateWindowW(L"Static", L"🖥️ معاينة المشروع", WS_CHILD | WS_VISIBLE | SS_CENTER, 610, 0, 300, 20, hwnd, NULL, NULL, NULL);
+            hPreview = CreateWindowW(L"Static", L"", WS_CHILD | WS_VISIBLE | WS_BORDER, 610, 20, 300, 480, hwnd, (HMENU)ID_PREVIEW, NULL, NULL);
+
+            // 4. الزر السفلي (رابط الويب)
+            hBtnLink = CreateWindowW(L"Button", L"🌐 استخراج رابط ويب للمشروع", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 205, 460, 400, 40, hwnd, (HMENU)ID_BTN_LINK, NULL, NULL);
+            
             DragAcceptFiles(hwnd, TRUE);
             break;
         case WM_COMMAND:
