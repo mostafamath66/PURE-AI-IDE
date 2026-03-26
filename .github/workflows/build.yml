@@ -1,0 +1,33 @@
+name: PURE-AI-Auto-Fetch-Build
+on: [push]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Fetch Dependencies (TCC, QJS, 7z)
+        run: |
+          mkdir bin
+          # تحميل المترجم الصغير TCC
+          curl -L http://download.savannah.gnu.org -o tcc.zip
+          tar -xf tcc.zip -C bin
+          # تحميل محرك جافا سكريبت QuickJS
+          curl -L https://github.com -o qjs.zip
+          tar -xf qjs.zip -C bin
+          # تحميل 7-Zip DLL (إصدار x64)
+          curl -L https://www.7-zip.org -o 7z_inst.exe
+          # استخراج الـ DLL فقط
+          ./7z_inst.exe /S /D=./temp_7z
+          copy ./temp_7z/7z.dll ./bin/7z.dll
+
+      - name: Compile PURE-AI
+        run: |
+          rc src/Resources.rc
+          cl.exe /O2 /MT src/Main.cpp src/Resources.res user32.lib shell32.lib gdi32.lib advapi32.lib ole32.lib /out:PURE-AI-Programmer.exe
+
+      - name: Upload Final Portable EXE
+        uses: actions/upload-artifact@v2
+        with:
+          name: PURE-AI-Final-Package
+          path: PURE-AI-Programmer.exe
