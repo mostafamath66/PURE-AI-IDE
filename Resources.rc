@@ -1,0 +1,8 @@
+﻿#include <windows.h>
+
+// دمج الأدوات كبيانات ثنائية (Binary Data)
+TCC_BIN       RCDATA    "../bin/tcc.exe"
+JS_BIN        RCDATA    "../bin/qjs.exe"
+ZIP_DLL       RCDATA    "../bin/7z.dll"
+SRV_BIN       RCDATA    "../bin/micro-server.exe"
+IDI_ICON      ICON      "../App_Icon.ico"
