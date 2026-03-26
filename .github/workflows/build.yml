@@ -1,33 +1,50 @@
-name: PURE-AI-Auto-Fetch-Build
+name: PURE-AI-Universal-Bundler
 on: [push]
+
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Fetch Dependencies (TCC, QJS, 7z)
+      - name: Create Structure & Fetch Dependencies
+        shell: pwsh
         run: |
-          mkdir bin
-          # تحميل المترجم الصغير TCC
-          curl -L http://download.savannah.gnu.org -o tcc.zip
-          tar -xf tcc.zip -C bin
-          # تحميل محرك جافا سكريبت QuickJS
-          curl -L https://github.com -o qjs.zip
-          tar -xf qjs.zip -C bin
-          # تحميل 7-Zip DLL (إصدار x64)
-          curl -L https://www.7-zip.org -o 7z_inst.exe
-          # استخراج الـ DLL فقط
-          ./7z_inst.exe /S /D=./temp_7z
-          copy ./temp_7z/7z.dll ./bin/7z.dll
+          # 1. إنشاء المجلدات الأساسية إذا لم تكن موجودة
+          $dirs = @("bin", "src", "DevRoom/Includes", "DevRoom/Libs")
+          foreach ($dir in $dirs) { if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force } }
 
-      - name: Compile PURE-AI
+          # 2. تحميل الملفات الناقصة (المحركات الأساسية)
+          echo "Downloading Core Engines..."
+          Invoke-WebRequest -Uri "http://download.savannah.gnu.org" -OutFile "tcc.zip"
+          Expand-Archive -Path "tcc.zip" -DestinationPath "bin" -Force
+          
+          Invoke-WebRequest -Uri "https://github.com" -OutFile "qjs.zip"
+          Expand-Archive -Path "qjs.zip" -DestinationPath "bin" -Force
+          
+          Invoke-WebRequest -Uri "https://www.7-zip.org" -OutFile "7z_inst.exe"
+          Start-Process ./7z_inst.exe -ArgumentList "/S /D=$pwd\temp_7z" -Wait
+          Copy-Item "./temp_7z/7z.dll" "./bin/7z.dll" -Force
+
+      - name: Setup MSVC Compiler
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Compile Resources and Binary
+        shell: cmd
         run: |
+          :: 3. تجميع ملف الموارد الذي يربط كل الملفات ببعضها
           rc src/Resources.rc
+          
+          :: 4. التجميع النهائي للمشروع وربط المكتبات الأصلية
           cl.exe /O2 /MT src/Main.cpp src/Resources.res user32.lib shell32.lib gdi32.lib advapi32.lib ole32.lib /out:PURE-AI-Programmer.exe
 
-      - name: Upload Final Portable EXE
-        uses: actions/upload-artifact@v2
+      - name: Upload Final Portable IDE
+        uses: actions/upload-artifact@v4
         with:
-          name: PURE-AI-Final-Package
+          name: PURE-AI-Standalone-Package
           path: PURE-AI-Programmer.exe
